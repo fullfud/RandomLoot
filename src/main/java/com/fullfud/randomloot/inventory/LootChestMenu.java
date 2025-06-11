@@ -24,24 +24,30 @@ public class LootChestMenu extends AbstractContainerMenu {
         var blockInventory = blockEntity.getCapability(net.minecraftforge.common.capabilities.ForgeCapabilities.ITEM_HANDLER)
                 .orElseThrow(() -> new IllegalStateException("Items capability not found for Loot Chest!"));
 
+        blockEntity.startOpen(playerInv.player); // Начинаем анимацию открытия
+
         // Слоты сундука (3 ряда по 9 слотов)
         for (int i = 0; i < 3; ++i) {
             for (int j = 0; j < 9; ++j) {
                 this.addSlot(new SlotItemHandler(blockInventory, j + i * 9, 8 + j * 18, 18 + i * 18));
             }
         }
-
         // Слоты инвентаря игрока (3 ряда по 9)
         for (int i = 0; i < 3; ++i) {
             for (int j = 0; j < 9; ++j) {
                 this.addSlot(new Slot(playerInv, j + i * 9 + 9, 8 + j * 18, 84 + i * 18));
             }
         }
-
         // Слоты хотбара игрока (1 ряд по 9)
         for (int i = 0; i < 9; ++i) {
             this.addSlot(new Slot(playerInv, i, 8 + i * 18, 142));
         }
+    }
+
+    @Override
+    public void removed(Player pPlayer) {
+        super.removed(pPlayer);
+        this.blockEntity.stopOpen(pPlayer); // Завершаем анимацию при закрытии
     }
 
     @Override
