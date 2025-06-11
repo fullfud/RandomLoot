@@ -17,6 +17,9 @@ public class ModMenuTypes {
     public static final RegistryObject<MenuType<ConfigChestMenu>> CONFIG_CHEST_MENU =
             registerMenuType((id, inv, data) -> new ConfigChestMenu(id, inv, inv.player.level().getBlockEntity(data.readBlockPos())), "config_chest_menu");
 
+    public static final RegistryObject<MenuType<LootChestMenu>> LOOT_CHEST_MENU =
+            registerMenuType((id, inv, data) -> new LootChestMenu(id, inv, inv.player.level().getBlockEntity(data.readBlockPos())), "loot_chest_menu");
+
 
     private static <T extends AbstractContainerMenu> RegistryObject<MenuType<T>> registerMenuType(IContainerFactory<T> factory, String name) {
         return MENUS.register(name, () -> IForgeMenuType.create(factory));

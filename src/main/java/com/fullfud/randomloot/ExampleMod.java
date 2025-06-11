@@ -8,6 +8,7 @@ import com.fullfud.randomloot.inventory.ModMenuTypes;
 import com.fullfud.randomloot.item.ModItems;
 import com.fullfud.randomloot.managers.ConfigSessionManager;
 import com.fullfud.randomloot.screen.ConfigChestScreen;
+import com.fullfud.randomloot.screen.LootChestScreen;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemStack;
@@ -32,13 +33,11 @@ public class ExampleMod {
     public ExampleMod() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
-        // Регистрация компонентов мода
         ModItems.register(modEventBus);
         ModBlocks.register(modEventBus);
         ModBlockEntities.register(modEventBus);
         ModMenuTypes.register(modEventBus);
 
-        // Регистрация обработчиков событий Forge
         MinecraftForge.EVENT_BUS.register(this);
     }
 
@@ -90,6 +89,7 @@ public class ExampleMod {
         @SubscribeEvent
         public static void onClientSetup(FMLClientSetupEvent event) {
             MenuScreens.register(ModMenuTypes.CONFIG_CHEST_MENU.get(), ConfigChestScreen::new);
+            MenuScreens.register(ModMenuTypes.LOOT_CHEST_MENU.get(), LootChestScreen::new);
         }
     }
 }

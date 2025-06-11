@@ -1,16 +1,15 @@
 package com.fullfud.randomloot.block.entity;
 
+import com.fullfud.randomloot.inventory.LootChestMenu;
 import com.fullfud.randomloot.util.ConfigStorage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -40,13 +39,11 @@ public class LootChestBlockEntity extends BlockEntity implements MenuProvider {
         super(ModBlockEntities.LOOT_CHEST_BE.get(), pos, state);
     }
 
-    // Логика, которая выполняется каждый тик на сервере
     public static void serverTick(Level level, BlockPos pos, BlockState state, LootChestBlockEntity be) {
         if (be.templateName == null || be.templateName.isEmpty()) {
-            return; // Если шаблон не задан, ничего не делаем
+            return;
         }
 
-        // Если сундук пуст и таймер не запущен, пытаемся его запустить
         if (be.isChestEmpty() && be.regenerationTimer == -1) {
             if (!isPlayerNearby(level, pos, PLAYER_CHECK_RADIUS)) {
                 be.regenerationTimer = REGENERATION_TIME;
@@ -55,9 +52,7 @@ public class LootChestBlockEntity extends BlockEntity implements MenuProvider {
             return;
         }
 
-        // Если таймер запущен
         if (be.regenerationTimer > 0) {
-            // Если игрок подошел, сбрасываем таймер
             if (isPlayerNearby(level, pos, PLAYER_CHECK_RADIUS)) {
                 be.regenerationTimer = -1;
                 be.setChanged();
@@ -66,10 +61,9 @@ public class LootChestBlockEntity extends BlockEntity implements MenuProvider {
 
             be.regenerationTimer--;
 
-            // Когда таймер дошел до нуля, регенерируем лут
             if (be.regenerationTimer == 0) {
                 be.regenerateLoot();
-                be.regenerationTimer = -1; // Сбрасываем таймер
+                be.regenerationTimer = -1;
                 be.setChanged();
             }
         }
@@ -97,7 +91,6 @@ public class LootChestBlockEntity extends BlockEntity implements MenuProvider {
             return;
         }
 
-        // Очищаем инвентарь перед заполнением
         for (int i = 0; i < itemHandler.getSlots(); i++) {
             itemHandler.setStackInSlot(i, ItemStack.EMPTY);
         }
@@ -105,10 +98,8 @@ public class LootChestBlockEntity extends BlockEntity implements MenuProvider {
         Random random = new Random();
         List<ItemStack> itemsToSpawn = template.getItemsToSpawn(random);
 
-        // Распределяем предметы по случайным слотам
         for (ItemStack stack : itemsToSpawn) {
             int slot = random.nextInt(itemHandler.getSlots());
-            // Ищем свободный слот, если случайный занят
             for(int i = 0; i < itemHandler.getSlots(); i++) {
                 int currentSlot = (slot + i) % itemHandler.getSlots();
                 if (itemHandler.getStackInSlot(currentSlot).isEmpty()) {
@@ -124,8 +115,6 @@ public class LootChestBlockEntity extends BlockEntity implements MenuProvider {
         setChanged();
     }
     
-    // --- Стандартные методы BlockEntity ---
-
     @Override
     public Component getDisplayName() {
         return Component.translatable("block.randomloot.loot_chest");
@@ -134,8 +123,7 @@ public class LootChestBlockEntity extends BlockEntity implements MenuProvider {
     @Nullable
     @Override
     public AbstractContainerMenu createMenu(int id, Inventory playerInv, Player player) {
-        // Используем стандартное меню сундука
-        return ChestMenu.threeRows(id, playerInv, this.itemHandler);
+        return new LootChestMenu(id, playerInv, this);
     }
 
     @NotNull
