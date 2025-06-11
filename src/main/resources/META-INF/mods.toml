@@ -1,0 +1,26 @@
+
+modLoader="javafml"
+loaderVersion="[47,)"
+license="All Rights Reserved"
+
+[[mods]]
+modId="randomloot"
+version="1.0.0"
+displayName="Random Loot"
+description='''
+Custom loot chest system for a military project.
+'''
+
+[[dependencies.randomloot]]
+    modId="forge"
+    mandatory=true
+    versionRange="[47.0.0,)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.randomloot]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.20.1,)"
+    ordering="NONE"
+    side="BOTH"
