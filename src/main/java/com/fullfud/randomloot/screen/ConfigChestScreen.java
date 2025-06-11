@@ -9,13 +9,14 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 
 public class ConfigChestScreen extends AbstractContainerScreen<ConfigChestMenu> {
-    private static final ResourceLocation CHEST_GUI_TEXTURE = new ResourceLocation("minecraft:textures/gui/container/generic_27.png");
+    // ИСПРАВЛЕННЫЙ ПУТЬ К ТЕКСТУРЕ
+    private static final ResourceLocation CHEST_GUI_TEXTURE = new ResourceLocation("minecraft:textures/gui/container/chest.png");
 
     public ConfigChestScreen(ConfigChestMenu pMenu, Inventory pPlayerInventory, Component pTitle) {
         super(pMenu, pPlayerInventory, pTitle);
-        this.imageHeight = 168;
+        this.imageHeight = 166; // Стандартная высота для GUI сундука
         this.imageWidth = 176;
-        this.inventoryLabelY = 74;
+        this.inventoryLabelY = this.imageHeight - 94;
     }
 
     @Override
@@ -31,11 +32,6 @@ public class ConfigChestScreen extends AbstractContainerScreen<ConfigChestMenu> 
         this.renderBackground(guiGraphics);
         super.render(guiGraphics, mouseX, mouseY, partialTicks);
         this.renderTooltip(guiGraphics, mouseX, mouseY);
-    }
-
-    @Override
-    protected void init() {
-        super.init();
     }
 
     @Override

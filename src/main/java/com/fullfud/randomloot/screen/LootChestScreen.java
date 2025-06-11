@@ -9,13 +9,14 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 
 public class LootChestScreen extends AbstractContainerScreen<LootChestMenu> {
-    private static final ResourceLocation CHEST_GUI_TEXTURE = new ResourceLocation("minecraft:textures/gui/container/generic_27.png");
+    // ИСПРАВЛЕННЫЙ ПУТЬ К ТЕКСТУРЕ
+    private static final ResourceLocation CHEST_GUI_TEXTURE = new ResourceLocation("minecraft:textures/gui/container/chest.png");
 
     public LootChestScreen(LootChestMenu pMenu, Inventory pPlayerInventory, Component pTitle) {
         super(pMenu, pPlayerInventory, pTitle);
-        this.imageHeight = 168;
+        this.imageHeight = 166; // Стандартная высота для GUI сундука
         this.imageWidth = 176;
-        this.inventoryLabelY = 74;
+        this.inventoryLabelY = this.imageHeight - 94;
     }
 
     @Override
