@@ -15,7 +15,7 @@ public class ModMenuTypes {
             DeferredRegister.create(ForgeRegistries.MENU_TYPES, ExampleMod.MODID);
 
     public static final RegistryObject<MenuType<ConfigChestMenu>> CONFIG_CHEST_MENU =
-            registerMenuType(ConfigChestMenu::new, "config_chest_menu");
+            registerMenuType((id, inv, data) -> new ConfigChestMenu(id, inv, inv.player.level().getBlockEntity(data.readBlockPos())), "config_chest_menu");
 
 
     private static <T extends AbstractContainerMenu> RegistryObject<MenuType<T>> registerMenuType(IContainerFactory<T> factory, String name) {

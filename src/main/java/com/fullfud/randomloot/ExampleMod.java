@@ -11,6 +11,7 @@ import com.fullfud.randomloot.screen.ConfigChestScreen;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.MinecraftForge;
@@ -41,13 +42,11 @@ public class ExampleMod {
         MinecraftForge.EVENT_BUS.register(this);
     }
 
-    // Обработчик для регистрации команд
     @SubscribeEvent
     public void onRegisterCommands(RegisterCommandsEvent event) {
         ModCommands.register(event.getDispatcher());
     }
 
-    // Обработчик для установки нашего блока-конфигуратора
     @SubscribeEvent
     public void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
         ItemStack stack = event.getItemStack();
@@ -60,39 +59,36 @@ public class ExampleMod {
         if (world.isClientSide()) return;
 
         BlockPos posToPlace = event.getPos().relative(event.getFace());
-        if (!world.getBlockState(posToPlace).canBeReplaced(null)) {
+        BlockPlaceContext context = new BlockPlaceContext(event.getEntity(), event.getHand(), event.getItemStack(), event.getHitVec());
+
+        if (!world.getBlockState(posToPlace).canBeReplaced(context)) {
             return;
         }
 
-        // Устанавливаем блок
         BlockState configBlockState = ModBlocks.CONFIG_CHEST.get().defaultBlockState();
         world.setBlock(posToPlace, configBlockState, 3);
 
         if (world.getBlockEntity(posToPlace) instanceof ConfigChestBlockEntity configEntity) {
             String templateName = stack.getOrCreateTag().getString("templateName");
-            UUID playerUUID = event.getPlayer().getUUID();
+            UUID playerUUID = event.getEntity().getUUID();
 
             configEntity.setOwner(playerUUID);
             configEntity.setTemplateName(templateName);
 
-            // Начинаем сессию конфигурации
             ConfigSessionManager.startSession(playerUUID, templateName, posToPlace);
 
-            // Открываем GUI
-            configBlockState.getBlock().use(configBlockState, world, posToPlace, event.getPlayer(), event.getHand(), event.getHitVec());
+            configBlockState.getBlock().use(configBlockState, world, posToPlace, event.getEntity(), event.getHand(), event.getHitVec());
         }
 
-        if (!event.getPlayer().isCreative()) {
+        if (!event.getEntity().isCreative()) {
             stack.shrink(1);
         }
     }
 
-    // Вложенный класс для обработки событий только на стороне клиента
     @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
     public static class ClientModEvents {
         @SubscribeEvent
         public static void onClientSetup(FMLClientSetupEvent event) {
-            // Регистрируем экран для нашего меню
             MenuScreens.register(ModMenuTypes.CONFIG_CHEST_MENU.get(), ConfigChestScreen::new);
         }
     }
