@@ -39,7 +39,6 @@ public class LootChestBlockEntity extends BlockEntity implements MenuProvider, L
     private static final int REGENERATION_TIME = 6000;
     private static final double PLAYER_CHECK_RADIUS = 50.0;
     
-    // Новая логика для анимации крышки
     public float lidAngle;
     public float prevLidAngle;
     private int openers;
@@ -126,7 +125,7 @@ public class LootChestBlockEntity extends BlockEntity implements MenuProvider, L
     }
     
     @Override
-    public float getLidAngle(float partialTicks) {
+    public float getOpenNess(float partialTicks) {
         return Mth.lerp(partialTicks, this.prevLidAngle, this.lidAngle);
     }
     
