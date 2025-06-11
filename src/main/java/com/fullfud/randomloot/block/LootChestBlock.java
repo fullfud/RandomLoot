@@ -4,6 +4,7 @@ import com.fullfud.randomloot.block.entity.LootChestBlockEntity;
 import com.fullfud.randomloot.block.entity.ModBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
@@ -17,6 +18,7 @@ import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.Nullable;
 
 public class LootChestBlock extends BaseEntityBlock {
@@ -26,7 +28,7 @@ public class LootChestBlock extends BaseEntityBlock {
 
     @Override
     public RenderShape getRenderShape(BlockState pState) {
-        return RenderShape.MODEL;
+        return RenderShape.ENTITYBLOCK_ANIMATED;
     }
 
     @Nullable
@@ -38,17 +40,13 @@ public class LootChestBlock extends BaseEntityBlock {
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        // Запускаем логику тика ТОЛЬКО на сервере
-        if (level.isClientSide()) {
-            return null;
-        }
-        return createTickerHelper(type, ModBlockEntities.LOOT_CHEST_BE.get(), LootChestBlockEntity::serverTick);
+        return createTickerHelper(type, ModBlockEntities.LOOT_CHEST_BE.get(),
+                level.isClientSide() ? LootChestBlockEntity::clientTick : LootChestBlockEntity::serverTick);
     }
 
     @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         super.setPlacedBy(level, pos, state, placer, stack);
-        // При установке блока, читаем NBT из предмета и записываем в BlockEntity
         if (stack.hasTag()) {
             CompoundTag nbt = stack.getTag();
             if (nbt != null && nbt.contains("templateName")) {
@@ -60,15 +58,25 @@ public class LootChestBlock extends BaseEntityBlock {
         }
     }
 
-    // При открытии сундука - просто даем открыть инвентарь
     @Override
     public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         if (!level.isClientSide) {
             BlockEntity be = level.getBlockEntity(pos);
-            if (be instanceof LootChestBlockEntity) {
-                player.openMenu((LootChestBlockEntity)be);
+            if (be instanceof LootChestBlockEntity menuProvider) {
+                NetworkHooks.openScreen((ServerPlayer) player, menuProvider, pos);
             }
         }
         return InteractionResult.SUCCESS;
+    }
+    
+    @Override
+    public void onRemove(BlockState pState, Level pLevel, BlockPos pPos, BlockState pNewState, boolean pIsMoving) {
+        if (!pState.is(pNewState.getBlock())) {
+            BlockEntity blockentity = pLevel.getBlockEntity(pPos);
+            if (blockentity instanceof LootChestBlockEntity) {
+                pLevel.updateNeighbourForOutputSignal(pPos, this);
+            }
+            super.onRemove(pState, pLevel, pPos, pNewState, pIsMoving);
+        }
     }
 }

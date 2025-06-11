@@ -6,6 +6,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -13,6 +15,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.ContainerOpenersCounter;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
@@ -34,6 +37,33 @@ public class LootChestBlockEntity extends BlockEntity implements MenuProvider {
     private int regenerationTimer = -1;
     private static final int REGENERATION_TIME = 6000; // 5 минут в тиках (5 * 60 * 20)
     private static final double PLAYER_CHECK_RADIUS = 50.0;
+    
+    private final ContainerOpenersCounter openersCounter = new ContainerOpenersCounter() {
+        @Override
+        protected void onOpen(Level level, BlockPos pos, BlockState state) {
+            level.playSound(null, pos, SoundEvents.CHEST_OPEN, SoundSource.BLOCKS, 0.5F, level.random.nextFloat() * 0.1F + 0.9F);
+        }
+
+        @Override
+        protected void onClose(Level level, BlockPos pos, BlockState state) {
+            level.playSound(null, pos, SoundEvents.CHEST_CLOSE, SoundSource.BLOCKS, 0.5F, level.random.nextFloat() * 0.1F + 0.9F);
+        }
+
+        @Override
+        protected void onOpenCountChanged(Level level, BlockPos pos, BlockState state, int previousCount, int newCount) {
+            level.blockEvent(pos, state.getBlock(), 1, newCount);
+        }
+
+        @Override
+        protected boolean isOwnContainer(Player player) {
+            if (player.containerMenu instanceof LootChestMenu menu) {
+                // Проверяем, что игрок смотрит именно в этот сундук
+                return menu.stillValid(player);
+            }
+            return false;
+        }
+    };
+
 
     public LootChestBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.LOOT_CHEST_BE.get(), pos, state);
@@ -67,6 +97,10 @@ public class LootChestBlockEntity extends BlockEntity implements MenuProvider {
                 be.setChanged();
             }
         }
+    }
+    
+    public static void clientTick(Level level, BlockPos pos, BlockState state, LootChestBlockEntity be) {
+        be.openersCounter.recheckOpeners(level, pos, state);
     }
 
     private static boolean isPlayerNearby(Level level, BlockPos pos, double radius) {
@@ -114,7 +148,28 @@ public class LootChestBlockEntity extends BlockEntity implements MenuProvider {
         this.templateName = name;
         setChanged();
     }
-    
+
+    @Override
+    public boolean triggerEvent(int id, int type) {
+        if (id == 1) {
+            this.openersCounter.setOpenCount(type);
+            return true;
+        }
+        return super.triggerEvent(id, type);
+    }
+
+    public void startOpen(Player pPlayer) {
+        if (!this.remove && !pPlayer.isSpectator()) {
+            this.openersCounter.incrementOpeners(pPlayer, this.getLevel(), this.getBlockPos(), this.getBlockState());
+        }
+    }
+
+    public void stopOpen(Player pPlayer) {
+        if (!this.remove && !pPlayer.isSpectator()) {
+            this.openersCounter.decrementOpeners(pPlayer, this.getLevel(), this.getBlockPos(), this.getBlockState());
+        }
+    }
+
     @Override
     public Component getDisplayName() {
         return Component.translatable("block.randomloot.loot_chest");
