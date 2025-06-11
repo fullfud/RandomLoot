@@ -12,10 +12,18 @@ public class ModBlockEntities {
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES =
             DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, ExampleMod.MODID);
 
+    // BE для сундука-конфигуратора
     public static final RegistryObject<BlockEntityType<ConfigChestBlockEntity>> CONFIG_CHEST_BE =
             BLOCK_ENTITIES.register("config_chest_be", () ->
                     BlockEntityType.Builder.of(ConfigChestBlockEntity::new,
                             ModBlocks.CONFIG_CHEST.get()).build(null));
+
+    // BE для финального лут-сундука
+    public static final RegistryObject<BlockEntityType<LootChestBlockEntity>> LOOT_CHEST_BE =
+            BLOCK_ENTITIES.register("loot_chest_be", () ->
+                    BlockEntityType.Builder.of(LootChestBlockEntity::new,
+                            ModBlocks.LOOT_CHEST.get()).build(null));
+
 
     public static void register(IEventBus eventBus) {
         BLOCK_ENTITIES.register(eventBus);

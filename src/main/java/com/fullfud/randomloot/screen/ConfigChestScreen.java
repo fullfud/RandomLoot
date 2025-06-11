@@ -9,12 +9,13 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 
 public class ConfigChestScreen extends AbstractContainerScreen<ConfigChestMenu> {
-    private static final ResourceLocation CHEST_GUI_TEXTURE = new ResourceLocation("minecraft:textures/gui/container/generic_54.png");
+    private static final ResourceLocation CHEST_GUI_TEXTURE = new ResourceLocation("minecraft:textures/gui/container/generic_27.png");
 
     public ConfigChestScreen(ConfigChestMenu pMenu, Inventory pPlayerInventory, Component pTitle) {
         super(pMenu, pPlayerInventory, pTitle);
         this.imageHeight = 168;
-        this.inventoryLabelY = this.imageHeight - 94;
+        this.imageWidth = 176;
+        this.inventoryLabelY = 74;
     }
 
     @Override
@@ -35,6 +36,11 @@ public class ConfigChestScreen extends AbstractContainerScreen<ConfigChestMenu> 
     @Override
     protected void init() {
         super.init();
-        // Убрал центрирование заголовка, так как он берется из BlockEntity и может быть длинным
+    }
+
+    @Override
+    protected void renderLabels(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY) {
+        pGuiGraphics.drawString(this.font, this.title, this.titleLabelX, this.titleLabelY, 4210752, false);
+        pGuiGraphics.drawString(this.font, this.playerInventoryTitle, this.inventoryLabelX, this.inventoryLabelY, 4210752, false);
     }
 }

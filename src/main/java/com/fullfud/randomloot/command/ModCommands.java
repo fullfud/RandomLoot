@@ -1,6 +1,6 @@
-// Файл: src/main/java/com/fullfud/randomloot/command/ModCommands.java
 package com.fullfud.randomloot.command;
 
+import com.fullfud.randomloot.block.ModBlocks;
 import com.fullfud.randomloot.block.entity.ConfigChestBlockEntity;
 import com.fullfud.randomloot.item.ModItems;
 import com.fullfud.randomloot.managers.ConfigSessionManager;
@@ -12,11 +12,13 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.*;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
+
 import java.util.List;
 
 public class ModCommands {
@@ -46,6 +48,15 @@ public class ModCommands {
                     .requires(source -> source.hasPermission(2))
                     .then(Commands.argument("chance", IntegerArgumentType.integer(1, 100))
                         .executes(context -> setItemChance(context.getSource(), IntegerArgumentType.getInteger(context, "chance")))
+                    )
+                )
+                .then(Commands.literal("give")
+                    .requires(source -> source.hasPermission(2))
+                    .then(Commands.argument("templateName", StringArgumentType.string())
+                        .executes(context -> giveLootChest(
+                                context.getSource(),
+                                StringArgumentType.getString(context, "templateName")
+                        ))
                     )
                 )
             )
@@ -183,5 +194,29 @@ public class ModCommands {
         ConfigStorage.saveTemplate(session, player.getServer());
         
         ConfigSessionManager.endSession(player.getUUID());
+    }
+    
+    private static int giveLootChest(CommandSourceStack source, String templateName) {
+        ServerPlayer player = source.getPlayer();
+        if (player == null) {
+            source.sendFailure(Component.literal("Эту команду может выполнять только игрок."));
+            return 0;
+        }
+
+        if (!ConfigStorage.templateExists(templateName, player.getServer())) {
+            source.sendFailure(Component.literal("Шаблон с именем '" + templateName + "' не найден!"));
+            return 0;
+        }
+
+        ItemStack lootChestStack = new ItemStack(ModBlocks.LOOT_CHEST.get());
+        CompoundTag nbt = new CompoundTag();
+        nbt.putString("templateName", templateName);
+        lootChestStack.setTag(nbt);
+        lootChestStack.setHoverName(Component.literal("Сундук с лутом: " + templateName).withStyle(ChatFormatting.GOLD));
+
+        player.getInventory().add(lootChestStack);
+        source.sendSuccess(() -> Component.literal("Вы получили сундук с лутом по шаблону '" + templateName + "'."), true);
+
+        return 1;
     }
 }
